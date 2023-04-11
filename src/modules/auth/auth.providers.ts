@@ -1,9 +1,9 @@
 import { JsonrxModel } from '../../models';
-import { USER_REPOSITORY } from '../../config/constants';
+import { JSONRX_REPOSITORY } from '../../config/constants';
 
 export const authProviders = [
   {
-    provide: USER_REPOSITORY,
+    provide: JSONRX_REPOSITORY,
     useValue: JsonrxModel,
   },
 ];

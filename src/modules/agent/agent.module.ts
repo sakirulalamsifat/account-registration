@@ -3,25 +3,21 @@ import { AgentService } from './agent.service';
 import { DatabaseModule } from '../../config/database/database.module';
 import { AgentController } from './agent.controller';
 import { PasswordService } from './password.service';
-import { ThirdpartyapiService } from './thirdpartyapi.service';
-import { AmlService } from './aml.service';
+import { NotificationService } from './notification.service';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { userProviders } from './agent.providers';
-import { ClientsModule } from '@nestjs/microservices';
-import { Transport } from '@nestjs/microservices';
-import { HttpModule } from '@nestjs/axios';
+
 @Module({
   controllers: [AgentController],
   providers: [
+    NotificationService,
     AgentService,
-    AmlService,
     PasswordService,
-    ThirdpartyapiService,
     ...userProviders,
     Logger,
   ],
   imports: [
     DatabaseModule,
-    HttpModule,
     ClientsModule.register([
       {
         name: 'kafka_module',
@@ -39,6 +35,6 @@ import { HttpModule } from '@nestjs/axios';
       },
     ]),
   ],
-  exports: [ThirdpartyapiService, AmlService, PasswordService, AgentService],
+  exports: [PasswordService, AgentService, NotificationService],
 })
 export class AgentModule {}

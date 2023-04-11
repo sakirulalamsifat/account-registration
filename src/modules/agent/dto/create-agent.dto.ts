@@ -1,87 +1,83 @@
-import {
-  IsNotEmpty,
-  MinLength,
-  IsEmail,
-  IsEnum,
-  isEmpty,
-  isBoolean,
-  IsInt,
-} from 'class-validator';
+import { IsNotEmpty, MinLength, IsString, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-export class CreateAgentbankingDto {
+export class TransactionDto {
+  @IsNotEmpty()
+  @IsString()
+  @Length(4, 4, { message: 'Keyword should be 4 character' })
+  @ApiProperty()
+  readonly KEYWORD: string;
   @IsNotEmpty()
   @ApiProperty()
-  readonly Keyword: string;
+  readonly StartDate: string;
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly EndDate: string;
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly MSISDN: string;
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly LANG: string;
+}
+export class TransactionTopDto {
+  @IsNotEmpty()
+  @IsString()
+  @Length(4, 4, { message: 'Keyword should be 4 character' })
+  @ApiProperty()
+  readonly KEYWORD: string;
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly MSISDN: string;
 
+  @ApiProperty()
+  @IsString()
+  @Length(6, 6, { message: 'PIN should be  6 digit' })
+  readonly PIN: string;
   @IsNotEmpty()
   @ApiProperty()
-  readonly Source_Wallet_ID: string;
+  readonly LANG: string;
+}
+export class BalanceDto {
+  @IsNotEmpty({ message: 'Keyword Can not be empty' })
+  @ApiProperty()
+  @IsString()
+  @Length(4, 4, { message: 'Keyword should be 4 character' })
+  readonly KEYWORD: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @MinLength(8)
+  readonly MSISDN: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(6, 6, { message: 'PIN should be  6 digit' })
+  readonly PIN: string;
   @IsNotEmpty()
   @ApiProperty()
-  readonly Dest_Wallet_ID: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Amount: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Transaction_Fee: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Transaction_Comm: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Charge_Payer: bigint;
-  @ApiProperty()
-  readonly Currency: string;
-  @ApiProperty()
-  readonly Reference_ID: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Comission_Receiver: bigint;
-  @ApiProperty()
-  readonly Language: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  @IsInt()
-  readonly PIN: bigint;
+  readonly LANG: string;
 }
 
-export class OffnetWithdrawalDto {
+export class PinChangeDto {
+  @IsNotEmpty()
+  @IsString()
+  @Length(4, 4, { message: 'Keyword should be 4 character' })
+  @ApiProperty()
+  readonly KEYWORD: string;
+  @MinLength(8)
   @IsNotEmpty()
   @ApiProperty()
-  readonly Keyword: string;
+  readonly MSISDN: string;
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly OLDPIN: string;
+  @IsNotEmpty()
+  @IsString()
+  @Length(6, 6, { message: 'PIN should be  6 digit' })
+  @ApiProperty()
+  readonly NEWPIN: string;
 
-  @IsNotEmpty()
   @ApiProperty()
-  readonly Source_Wallet_ID: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Dest_Wallet_ID: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Amount: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Transaction_Fee: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Transaction_Comm: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Charge_Payer: bigint;
-  @ApiProperty()
-  readonly Currency: string;
-  @ApiProperty()
-  readonly Reference_ID: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly Comission_Receiver: bigint;
-  @ApiProperty()
-  readonly Language: string;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly PIN: number;
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly OFFNETPIN: number;
+  readonly LANG: string;
 }

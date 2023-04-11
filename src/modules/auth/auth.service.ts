@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { JsonrxModel } from '../../models';
-import { USER_REPOSITORY, DATABASE_CONNECTION } from '../../config/constants';
+import { JSONRX_REPOSITORY, DATABASE_CONNECTION } from '../../config/constants';
 import { Sequelize } from 'sequelize-typescript';
 import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(USER_REPOSITORY)
+    @Inject(JSONRX_REPOSITORY)
     private readonly userRepository: typeof JsonrxModel,
     @Inject(DATABASE_CONNECTION) private DB: Sequelize,
     private jwtService: JwtService,

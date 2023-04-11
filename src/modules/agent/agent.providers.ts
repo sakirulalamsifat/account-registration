@@ -1,8 +1,18 @@
-import { AgentModel, AgentPorfileModel, JsonrxModel } from '../../models';
+import {
+  AgentModel,
+  AgentPorfileModel,
+  JsonrxModel,
+  WalletModel,
+  NotificationModel,
+  TransactionModel,
+} from '../../models';
 import {
   AGENTPROFILE_REPOSITORY,
   TRANSACTION_REPOSITORY,
   JSONRX_REPOSITORY,
+  WALLET_REPOSITORY,
+  NOTIFICATION_REPOSITORY,
+  TOPFIVE_REPOSITORY
 } from '../../config/constants';
 
 export const userProviders = [
@@ -18,5 +28,17 @@ export const userProviders = [
   {
     provide: JSONRX_REPOSITORY,
     useValue: JsonrxModel,
+  },
+  {
+    provide: WALLET_REPOSITORY,
+    useValue: WalletModel,
+  },
+  {
+    provide: NOTIFICATION_REPOSITORY,
+    useValue: NotificationModel,
+  },
+  {
+    provide: TOPFIVE_REPOSITORY,
+    useValue: TransactionModel,
   },
 ];
