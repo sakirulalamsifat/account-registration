@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 //import { expressBind } from 'i18n-2';
 //import { localize } from './middleware';
@@ -22,7 +23,7 @@ async function bootstrap() {
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.ms(),
-            nestWinstonModuleUtilities.format.nestLike('PaymentProcess', {
+            nestWinstonModuleUtilities.format.nestLike('FINIFY_REZ', {
               // options
             }),
           ),
@@ -34,20 +35,20 @@ async function bootstrap() {
     }),
   });
   const config = new DocumentBuilder()
-    .setTitle('CORE MODULE')
+    .setTitle('ACCOUNT INFO MODULE')
     .setDescription('This Module is CORE FINITY MODULE')
     .setVersion('1.0')
     .addTag('core')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  app.setGlobalPrefix('v1/api');
+  SwaggerModule.setup('accservice', app, document);
+  app.setGlobalPrefix('v1/accservice');
   app.enableCors();
 
   // expressBind(app, { locales: ['en'] });
   // app.use(localize);
 
-  //  app.useGlobalPipes(new ValidateInputPipe());
+  app.useGlobalPipes(new ValidationPipe());
   //use globally to check auth module from request header
   // app.useGlobalGuards(new AuthModuleGuard());
   await app.listen(process.env.PORT || 3000);
