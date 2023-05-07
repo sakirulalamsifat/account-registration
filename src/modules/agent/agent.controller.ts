@@ -8,20 +8,21 @@ import {
 } from './dto/create-agent.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthmodeAuthGuard } from '../auth/authmode-auth.guard';
+import { BasicAuthGuard } from '../auth/basicauth-auth.guard';
 @Controller('account')
 export class AgentController {
   constructor(private readonly agentbankingService: AgentService) {}
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthmodeAuthGuard, BasicAuthGuard)
   @Get('/balance/:Accountnumber')
   balance(@Param('Accountnumber') Accountnumber) {
     return this.agentbankingService.balancecheck(+Accountnumber);
   }
-  @UseGuards(AuthmodeAuthGuard)
+  @UseGuards(AuthmodeAuthGuard, BasicAuthGuard)
   @Post('/balance')
   balanceussd(@Body() balanceDto: BalanceDto) {
     return this.agentbankingService.balancecheckussd(balanceDto);
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthmodeAuthGuard, BasicAuthGuard)
   @Post('/transactionhistory')
   transactionhistory(@Body() transactionDto: TransactionDto) {
     return this.agentbankingService.transactionhistory(transactionDto);
