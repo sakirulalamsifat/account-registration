@@ -1,9 +1,9 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from 'src/config/constants';
+import { IS_PUBLIC_KEY } from '../../config/constants';
 import { Reflector } from '@nestjs/core';
 @Injectable()
-export class LocalAuthGuard extends AuthGuard('local') {
+export class LocalAuthGuard extends AuthGuard('basic') {
   constructor(private reflector: Reflector) {
     super();
   }
@@ -12,6 +12,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (isPublic) {
       return true;
     }

@@ -10,9 +10,10 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { UNAUTHORIZED } from '../../helpers/responseHelper';
-
+import { AuthService } from './auth.service';
 @Injectable()
 export class AuthmodeAuthGuard implements CanActivate {
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -24,7 +25,7 @@ export class AuthmodeAuthGuard implements CanActivate {
     if (
       !headers ||
       !headers['module'] ||
-      headers['module'] != process.env.AUTH_MODULE
+      headers['module'] != process.env.AUTH_MODULE 
     ) {
       throw new UnauthorizedException(
         UNAUTHORIZED('API Calling not Authorized', request),

@@ -9,5 +9,6 @@ export const JSONRX_REPOSITORY = 'JSONRX_REPOSITORY';
 export const WALLET_REPOSITORY = 'WALLET_REPOSITORY';
 export const NOTIFICATION_REPOSITORY = 'NOTIFICATION_REPOSITORY';
 export const TOPFIVE_REPOSITORY = 'TOPFIVE_REPOSITORY';
+export const LOG_REPOSITORY = 'LOG_REPOSITORY';
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);

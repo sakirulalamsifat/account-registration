@@ -5,6 +5,7 @@ import {
   WalletModel,
   NotificationModel,
   TransactionModel,
+  LogModel,
 } from '../../models';
 import {
   AGENTPROFILE_REPOSITORY,
@@ -12,7 +13,8 @@ import {
   JSONRX_REPOSITORY,
   WALLET_REPOSITORY,
   NOTIFICATION_REPOSITORY,
-  TOPFIVE_REPOSITORY
+  TOPFIVE_REPOSITORY,
+  LOG_REPOSITORY,
 } from '../../config/constants';
 
 export const userProviders = [
@@ -40,5 +42,9 @@ export const userProviders = [
   {
     provide: TOPFIVE_REPOSITORY,
     useValue: TransactionModel,
+  },
+  {
+    provide: LOG_REPOSITORY,
+    useValue: LogModel,
   },
 ];

@@ -1,8 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { JsonrxModel } from '../../models';
+import { JsonrxModel } from '../../model';
 import { JSONRX_REPOSITORY, DATABASE_CONNECTION } from '../../config/constants';
 import { Sequelize } from 'sequelize-typescript';
 import { JwtService } from '@nestjs/jwt';
+import { winstonLog } from '../../config/winstonLog';
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,23 +22,26 @@ export class AuthService {
     OsVersion: string,
     authorization: string,
   ): Promise<any> {
-    const payload = await this.DB.query(
-      `EXEC dbo.SW_PROC_VERIFY_JSONRX_REGISTRATION @FLAG = 'ValidateDevice', @Msisdn =  ${Msisdn}, @Imei ='${FullName}', @AppVersion = '${AppVersion}', @PhoneBrand= '${PhoneBrand}',@PhoneOs = '${PhoneOs}',@OsVersion = '${OsVersion}'`,
+    const obj = JSON.parse(
+      JSON.stringify(
+        await this.DB.query(
+          `EXEC dbo.SW_PROC_VERIFY_JSONRX_REGISTRATION @FLAG = 'ValidateDevice', @Msisdn =  ${Msisdn}, @Imei ='${FullName}', @AppVersion = '${AppVersion}', @PhoneBrand= '${PhoneBrand}',@PhoneOs = '${PhoneOs}',@OsVersion = '${OsVersion}'`,
+        ),
+      ),
     );
-    const data = JSON.stringify(payload);
-    const obj = JSON.parse(data);
+
     if (obj[0][0].Code == 100) {
-      console.log('CUSTOMER REGISTRATION IS VALID');
+      winstonLog.log('debug', 'Customer Validation Check: %s', obj[0]);
       let varification = Buffer.from(
         `${Msisdn}:${obj[0][0].Device_Password}`,
       ).toString('base64');
       varification = `Basic ${varification}`;
-      console.log(varification);
+      winstonLog.log('debug', 'Varification Code: %s', varification);
       if (authorization == varification) {
-        console.log('Authorized');
+        winstonLog.log('info', 'Authorized: %s', authorization);
         const payload = { username: Msisdn, sub: authorization };
         const token = this.jwtService.sign(payload);
-        const update = await this.update(Msisdn, token);
+        const update = await this.update(Msisdn, varification);
         console.log(update);
         return {
           access_token: token,
@@ -51,11 +55,25 @@ export class AuthService {
       return null;
     }
   }
-
+  async validatemodule(Token: string) {
+    const payload = JSON.parse(
+      JSON.stringify(
+        this.userRepository.findOne({
+          where: { ACCESS_TOKEN: Token },
+        }),
+      ),
+    );
+    if (payload[0][0].MSISDN != null) return true;
+    else return false;
+  }
   async update(Msisdn: string, ACCESS_TOKEN: string) {
     return this.userRepository
       .update<JsonrxModel>(
-        { ACCESS_TOKEN: ACCESS_TOKEN },
+        {
+          ACCESS_TOKEN: ACCESS_TOKEN,
+          ACCESS_TOKEN_UPDATE:
+            this.userRepository.sequelize.literal('GETDATE()'),
+        },
         { where: { Msisdn: Msisdn } },
       )
       .then(() => {

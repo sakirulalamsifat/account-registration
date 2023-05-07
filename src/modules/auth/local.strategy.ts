@@ -1,20 +1,21 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ModuleRef } from '@nestjs/core';
-import { ContextIdFactory } from '@nestjs/core';
+import { winstonLog } from '../../config/winstonLog';
+import { ExtractJwt } from 'passport-jwt';
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy) {
+export class LocalStrategy extends PassportStrategy(Strategy, 'basic') {
+  private readonly headerValue: string;
   constructor(private authService: AuthService) {
     super();
   }
 
   async validate(username: string, password: string): Promise<any> {
     const pass = password.split('|');
-    console.log(username);
-    console.log(password);
-
+    winstonLog.log('info', 'USERNAME: %s', username);
+    winstonLog.log('debug', 'PASSWORD: %s', password);
+    winstonLog.log('debug', 'PASSWORD: %s', this.headerValue);
     const user = await this.authService.validateUser(
       username,
       pass[0],
@@ -29,4 +30,5 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     }
     return user;
   }
+
 }

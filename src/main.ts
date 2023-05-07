@@ -7,33 +7,80 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as expressListRoutes from 'express-list-routes';
 import * as winston from 'winston';
+import { LogsService } from './modules/agent/log.service';
+import { LogTransport } from './modules/Log/log.transport';
 import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
+  
 } from 'nest-winston';
 
 //import { AuthModuleGuard } from './middleware/guards';
 async function bootstrap() {
   //const app = await NestFactory.create(AppModule);
+  const instance = winston.createLogger({
+    level: 'debug',
+    transports: [
+      new winston.transports.Console({
+        format: winston.format.combine(
+          winston.format.timestamp({
+            format: 'YYYY-MM-DD hh:mm:ss.SSS A', // 2022-01-25 03:23:10.350 PM
+          }),
+          winston.format.ms(),
+          winston.format.align(),
+          nestWinstonModuleUtilities.format.nestLike('FINIFY_REZ', {
+            colors: true,
+            prettyPrint: true,
+            // options
+          }),
+        ),
+      }),
+      new winston.transports.File({
+        filename: './log/combined.log',
+        format: winston.format.combine(
+          winston.format.timestamp({
+            format: 'YYYY-MM-DD hh:mm:ss.SSS A', // 2022-01-25 03:23:10.350 PM
+          }),
+          winston.format.ms(),
+          winston.format.align(),
+          nestWinstonModuleUtilities.format.nestLike('FINIFY_REZ', {
+            colors: true,
+            // options
+          }),
+        ),
+        level: 'debug',
+      }),
+      new winston.transports.File({
+        level: 'error',
+        filename: './log/app-error.log',
+
+        format: winston.format.combine(
+          winston.format.timestamp({
+            format: 'YYYY-MM-DD hh:mm:ss.SSS A', // 2022-01-25 03:23:10.350 PM
+          }),
+          winston.format.ms(),
+          winston.format.align(),
+          nestWinstonModuleUtilities.format.nestLike('FINIFY_REZ', {
+            colors: true,
+            // options
+          }),
+        ),
+      }),
+    
+      // other transports...
+    ],
+    // other options
+    // options (same as WinstonModule.forRoot() options)
+  });
+  // options of Winston
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
-      level: 'debug',
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.ms(),
-            nestWinstonModuleUtilities.format.nestLike('FINIFY_REZ', {
-              // options
-            }),
-          ),
-        }),
-        // other transports...
-      ],
-      // other options
-      // options (same as WinstonModule.forRoot() options)
+      instance,
     }),
   });
+  //const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
   const config = new DocumentBuilder()
     .setTitle('ACCOUNT INFO MODULE')
     .setDescription('This Module is CORE FINITY MODULE')

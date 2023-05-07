@@ -70,4 +70,12 @@ export class JsonrxModel extends Model {
     type: DataType.TEXT,
   })
   ACCESS_TOKEN: string;
+  @Column({
+    type: DataType.DATE,
+  })
+  OTPDate: Date;
+  @Column({
+    type: DataType.DATE,
+  })
+  ACCESS_TOKEN_UPDATE: Date;
 }

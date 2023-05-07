@@ -7,6 +7,7 @@ import { LocalStrategy } from './local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './jwt.strategy';
+
 import 'dotenv/config';
 @Module({
   providers: [AuthService, ...authProviders, LocalStrategy, JwtStrategy],
