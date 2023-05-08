@@ -14,6 +14,7 @@ import {
   WinstonModule,
   
 } from 'nest-winston';
+import { winstonLog } from './config/winstonLog';
 
 //import { AuthModuleGuard } from './middleware/guards';
 async function bootstrap() {
@@ -101,7 +102,7 @@ async function bootstrap() {
   await app.listen(process.env.PORT || 3000);
   console.log(`LISTING TO PORT ${process.env.PORT}`);
   const server = app.getHttpServer();
-  const router = server._events.request._router;
-  console.log(expressListRoutes({}, 'API:', router));
+  //const router = server._events.request._router;
+ // winstonLog.log('info', 'API %s', expressListRoutes({}, 'API:', router));
 }
 bootstrap();
