@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { JsonrxModel } from '../../model';
+import { JsonrxModel } from '../../models';
 import { JSONRX_REPOSITORY, DATABASE_CONNECTION } from '../../config/constants';
 import { Sequelize } from 'sequelize-typescript';
 import { JwtService } from '@nestjs/jwt';

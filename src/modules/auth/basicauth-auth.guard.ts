@@ -5,7 +5,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { JsonrxModel } from '../../model';
+import { JsonrxModel } from '../../models';
 import { JSONRX_REPOSITORY, DATABASE_CONNECTION } from '../../config/constants';
 import { Sequelize } from 'sequelize-typescript';
 import { winstonLog } from '../../config/winstonLog';
