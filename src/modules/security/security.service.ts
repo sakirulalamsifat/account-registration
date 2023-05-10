@@ -143,7 +143,8 @@ export class SecurityService {
     
 
     const {Question=[], Question_ID, Wallet_MSISDN, Answer } = reqbody
-
+    
+    const question_length=process.env.SECURITY_QUESTION_LENGTH
     // const createBody = {
     //   Wallet_MSISDN,
     //   Question_ID,
@@ -162,10 +163,16 @@ export class SecurityService {
     //   Created_Date: Sequelize.fn('getdate')
     // }, { logging: console.log })
 
-    const data=await this.securityQuestionAnswerRepo.bulkCreate(Question)
+    if (Question.length > question_length) {
+      return 'Question length is high than permission'
+    } else {
+      const data=await this.securityQuestionAnswerRepo.bulkCreate(Question)
 
 
-    return data
+      return data
+    }
+
+   
   }
 
   async resetPin(reqbody) {
