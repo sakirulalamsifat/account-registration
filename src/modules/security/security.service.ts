@@ -79,10 +79,76 @@ export class SecurityService {
 
   async questionListapi(reqbody) {
 
+    const { Msisdn } = reqbody
 
-    const questions = await this.securityQuestionRepo.findAll()
+    const question_length=process.env.SECURITY_QUESTION_LENGTH
+    let question_id=[]
+    const findAnswerQuestion = await this.securityQuestionAnswerRepo.findAll({ where: { Wallet_MSISDN: Msisdn } })
+    for (let id of findAnswerQuestion) {
+      question_id.push(id.Question_ID)
+    }
+
+    let SecurityQuestionListWithoutLength=[]
+    let SecurityQuestionList=[]
     
-    return questions
+    if (findAnswerQuestion.length !== 0) {
+      const questions = await this.securityQuestionRepo.findAll({ where: { Question_ID: question_id} })
+      for (let question of questions) {
+        
+        const data =
+        {
+          QuestionId: question.Question_ID,
+          Question: question.Question_Description,
+          Answer: null,
+          QuestionLocal: question.Question_Description_Local
+        }
+        SecurityQuestionListWithoutLength.push(data)
+      }
+
+      if (SecurityQuestionListWithoutLength.length > Number(question_length)) {
+        SecurityQuestionList = SecurityQuestionListWithoutLength.slice(0, Number(question_length))
+     
+      } else {
+        SecurityQuestionList=SecurityQuestionListWithoutLength
+      }
+
+      console.log('answer')
+      return {
+        SecurityQuestionList,
+        Msisdn: Msisdn ,
+        ResponseCode: 100,
+        ResponseDescription: "Success",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+      }
+      
+    } else {
+      const questions = await this.securityQuestionRepo.findAll({ limit: Number(process.env.SECURITY_QUESTION_LENGTH) })
+      for (let question of questions) {
+        const data =
+        {
+          QuestionId: question.Question_ID,
+          Question: question.Question_Description,
+          Answer: null,
+          QuestionLocal: question.Question_Description_Local
+        }
+
+        SecurityQuestionList.push(data)
+      }
+
+      console.log('without answer')
+      return {
+        SecurityQuestionList,
+        Msisdn: Msisdn ,
+        ResponseCode: 100,
+        ResponseDescription: "Success",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+      }
+    }
+    
   }
 
   async editSecurityQuestion(reqbody) {
@@ -164,8 +230,13 @@ export class SecurityService {
     // }, { logging: console.log })
 
     if (Question.length > question_length) {
-      return 'Question length is high than permission'
+      const newQuestion = Question.slice(0, question_length)
+
+      const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
+      
+      return data
     } else {
+
       const data=await this.securityQuestionAnswerRepo.bulkCreate(Question)
 
 

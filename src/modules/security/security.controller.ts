@@ -13,7 +13,7 @@ export class AgentController {
     return this.securityService.createSecurityQuestion(reqbody);
   }
 
-  @Get('/getQuestionList')
+  @Post('/getQuestionList')
   getSecurityquestion(@Body() reqbody: any) {
     return this.securityService.questionListapi(reqbody);
   }
@@ -22,6 +22,7 @@ export class AgentController {
   approveSecurityquestion(@Request() req, @Body() reqbody: any) {
     return this.securityService.approveSecurityQuestion(req);
   }
+  @UseGuards(AuthmodeAuthGuard)
   @Post('/questionAnswerSet')
   setSecurityAnswer(@Body() reqbody: any) {
     return this.securityService.saveAnswerToQuestion(reqbody);
