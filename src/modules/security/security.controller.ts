@@ -12,6 +12,12 @@ export class AgentController {
   createSecurityquestion(@Body() reqbody: any) {
     return this.securityService.createSecurityQuestion(reqbody);
   }
+
+  @Get('/getQuestionList')
+  getSecurityquestion(@Body() reqbody: any) {
+    return this.securityService.questionListapi(reqbody);
+  }
+
   @Post('/approveQuestion')
   approveSecurityquestion(@Request() req, @Body() reqbody: any) {
     return this.securityService.approveSecurityQuestion(req);

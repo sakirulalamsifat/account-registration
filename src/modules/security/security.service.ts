@@ -77,6 +77,14 @@ export class SecurityService {
     return await this.securityQuestionHistoryRepo.create(createBody)
   }
 
+  async questionListapi(reqbody) {
+
+
+    const questions = await this.securityQuestionRepo.findAll()
+    
+    return questions
+  }
+
   async editSecurityQuestion(reqbody) {
 
 
