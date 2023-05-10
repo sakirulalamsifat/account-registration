@@ -5,3 +5,10 @@ export * from './wallet.mode';
 export * from './notification.model';
 export * from './transaction.model';
 export * from './log.model';
+export * from './securityQuestion.model'
+export * from './securityQuestionTemp.model'
+export * from './securityQuestionHistory.model'
+export * from './security.model'
+export * from './agentprofile.model'
+export * from './customerProfile.model'
+export * from './merchantProfile.model'
