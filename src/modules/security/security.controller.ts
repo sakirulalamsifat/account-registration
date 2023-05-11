@@ -28,6 +28,14 @@ export class AgentController {
     return this.securityService.saveAnswerToQuestion(reqbody);
   }
 
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/AnswerSecurityQuestion')
+  AnswerSecurityQuestion(@Body() reqbody: any) {
+    return this.securityService.answerToQuestion(reqbody);
+  }
+
+
+
   @Post('/resetPin')
   resetPin(@Body() reqbody: any, @Body() pinchangeDto:PinChangeDto) {
     return this.securityService.resetPin(reqbody, pinchangeDto);

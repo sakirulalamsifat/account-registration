@@ -282,6 +282,112 @@ export class SecurityService {
    
   }
 
+  async answerToQuestion(reqbody) {
+    const { Msisdn, SecurityQuestionList = [] } = reqbody
+    
+    const question_length=process.env.SECURITY_QUESTION_LENGTH
+    
+    const agent = await this.agentProfile.findOne({ where: { MSISDN: Msisdn } })
+    const customer = await this.customerProfile.findOne({ where: { MSISDN: Msisdn } })
+    const merchant = await this.merchantProfile.findOne({ where: { MSISDN: Msisdn } })
+    let bodyAnswers = []
+    let dataAnswers = []
+    let questionAnswerFormat = []
+    let compare
+    
+    function filterObjects(arr1, arr2) {
+      return arr1.filter((obj1) => {
+        return arr2.some((obj2) => obj2.Question_ID === obj1.Question_ID);
+      });
+    }
+
+    function compareArrays(a, b) {
+    
+      for (let i = 0; i < a.length; i++) {
+        const objA = a[i];
+        const objB = b.find((obj) => obj.Question_ID === objA.Question_ID);
+    
+        if (!objB || objB.Answer !== objA.Answer) {
+          return false;
+        }
+      }
+    
+      return true;
+    }
+    
+      const findQuestion = await this.securityQuestionAnswerRepo.findAll({ where: { Wallet_MSISDN: Msisdn }, limit: Number(question_length) })
+      
+      //from body
+
+      if (SecurityQuestionList.length > Number(question_length)) {
+        questionAnswerFormat = SecurityQuestionList.slice(0, Number(question_length))
+        for (let answer of questionAnswerFormat) {
+          let data = { Question_ID: answer.QuestionId, Answer: answer.Answer }
+          bodyAnswers.push(data)
+        }
+
+      } else {
+        for (let answer of SecurityQuestionList) {
+          let data = { Question_ID: answer.QuestionId, Answer: answer.Answer }
+          bodyAnswers.push(data)
+        }
+      }
+
+      for (let datanswer of findQuestion) {
+        let data = { Question_ID: datanswer.Question_ID, Answer: datanswer.Answer }
+        dataAnswers.push(data)
+      }
+      
+   
+      if (bodyAnswers.length !== dataAnswers.length) {
+        const filteredArr = filterObjects(dataAnswers, bodyAnswers);
+         compare=compareArrays(filteredArr,bodyAnswers)
+    } else{
+        compare=compareArrays(dataAnswers,bodyAnswers)
+    }
+    if (compare == true) {
+      return {
+        PinResetAttempt: 0,
+        SecurityQuestionList: [],
+        Msisdn: Msisdn,
+        ResponseCode: 100,
+        ResponseDescription: "Success",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+      }
+    } else {
+      throw new BadRequestException('Answer Does to match')
+    }
+       
+        
+        // const notificationtempbody = {
+        //   KEYWORD: '',
+        //   SourceMsisdn: msisdn,
+        //   PIN: generatedPin.toString(),
+        //   templateID: 'PRST',
+        //   LANG: 'ENG',
+        // };
+        // return {
+        //   ResponseCode: 100,
+        //   ResponseDescription:
+        //     await this.notificationService.getPINChangeNotification(
+        //       notificationtempbody,
+        //     ),
+        //   TransactionID: 0,
+        // };
+
+        
+      
+    
+
+
+
+
+  }
+
+
+
   async resetPin(reqbody, pinChangeDto:PinChangeDto) {
     const { msisdn, question_answer = [] } = reqbody
     
