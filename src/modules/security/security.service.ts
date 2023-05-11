@@ -208,7 +208,7 @@ export class SecurityService {
 
     
 
-    const {Question=[], Question_ID, Wallet_MSISDN, Answer } = reqbody
+    const {SecurityQuestionList=[], Pin, Msisdn} = reqbody
     
     const question_length=process.env.SECURITY_QUESTION_LENGTH
     // const createBody = {
@@ -229,32 +229,70 @@ export class SecurityService {
     //   Created_Date: Sequelize.fn('getdate')
     // }, { logging: console.log })
 
-    if (Question.length > question_length) {
-      const newQuestion = Question.slice(0, question_length)
+    if (SecurityQuestionList.length > question_length) {
+      const newQuestion = SecurityQuestionList.slice(0, question_length)
 
-      const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
+      for (let question of newQuestion) {
+        const data = await this.securityQuestionAnswerRepo.create({
+          Wallet_MSISDN: Msisdn,
+            Question_ID: question.QuestionId,
+            Answer: question.Answer,
+            Created_Date: Sequelize.fn('getdate')
+        })
+      }
+
+      //const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
       
-      return data
+      return {
+        Msisdn:Msisdn ,
+        ResponseCode: 100,
+        ResponseDescription: "Successful",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+      }
     } else {
 
-      const data=await this.securityQuestionAnswerRepo.bulkCreate(Question)
+      for (let question of SecurityQuestionList) {
+        const data = await this.securityQuestionAnswerRepo.create({
+          Wallet_MSISDN: Msisdn,
+            Question_ID: question.QuestionId,
+            Answer: question.Answer,
+            Created_Date: Sequelize.fn('getdate')
+        })
+      }
+
+      //const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
+      
+      return {
+        Msisdn:Msisdn ,
+        ResponseCode: 100,
+        ResponseDescription: "Successful",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+      }
+
+      // const data=await this.securityQuestionAnswerRepo.bulkCreate(SecurityQuestionList)
 
 
-      return data
+      // return data
     }
 
    
   }
 
-  async resetPin(reqbody) {
-    const { msisdn,question_answer } = reqbody
+  async resetPin(reqbody, pinChangeDto:PinChangeDto) {
+    const { msisdn, question_answer = [] } = reqbody
     
-    const agent = await this.agentProfile.findOne({ where: { MSISDN: msisdn } })
-    const customer = await this.customerProfile.findOne({ where: { MSISDN: msisdn } })
-    const merchant = await this.merchantProfile.findOne({ where: { MSISDN: msisdn } })
+    const question_length=process.env.SECURITY_QUESTION_LENGTH
+    
+    const agent = await this.agentProfile.findOne({ where: { MSISDN: pinChangeDto.MSISDN } })
+    const customer = await this.customerProfile.findOne({ where: { MSISDN: pinChangeDto.MSISDN } })
+    const merchant = await this.merchantProfile.findOne({ where: { MSISDN: pinChangeDto.MSISDN } })
     
     if (agent !== null) {
-      const findQuestion = await this.securityQuestionAnswerRepo.findOne({ where: { Wallet_MSISDN: msisdn } })
+      const findQuestion = await this.securityQuestionAnswerRepo.findOne({ where: { Wallet_MSISDN: msisdn }} )
       
       if (findQuestion.Answer === question_answer) {
         const generatedPin = await this.generateSixDigitRandomNumber()

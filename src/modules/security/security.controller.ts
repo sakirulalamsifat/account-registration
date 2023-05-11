@@ -29,7 +29,7 @@ export class AgentController {
   }
 
   @Post('/resetPin')
-  resetPin(@Body() reqbody: any) {
-    return this.securityService.resetPin(reqbody);
+  resetPin(@Body() reqbody: any, @Body() pinchangeDto:PinChangeDto) {
+    return this.securityService.resetPin(reqbody, pinchangeDto);
   }
 }
