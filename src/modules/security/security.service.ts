@@ -8,7 +8,8 @@ import {
   MerchantProfileModel,
   CustomerProfileModel
 } from '../../models';
-import { PinChangeDto } from '../agent/dto/create-agent.dto';
+import { PinResetDto } from './dto/pin-reset.dto';
+import { ClientKafka } from '@nestjs/microservices';
 import {
   SW_TBL_SECURITY_QUESTION,
   SW_TBL_SECURITY_QUESTION_HISTORY,
@@ -27,6 +28,8 @@ import { NotificationService } from '../agent/notification.service';
 @Injectable()
 export class SecurityService {
   constructor(
+    @Inject('kafka_module')
+    private readonly client: ClientKafka,
     @Inject(SW_TBL_SECURITY_QUESTION)
     private readonly securityQuestionRepo: typeof SecurityQuestionModel,
     @Inject(SW_TBL_SECURITY_QUESTION_HISTORY)
@@ -386,150 +389,143 @@ export class SecurityService {
 
   }
 
+  async emitKafkaPushNotif(data) {
+    this.logger.log('Messeage Send -> ' + JSON.stringify(data));
+    return this.client.emit(process.env.KAFKA_PUSH_NOTIFICATION_TOPIC, JSON.stringify(data))
+  }
 
 
-  async resetPin(reqbody, pinChangeDto:PinChangeDto) {
-    const { msisdn, question_answer = [] } = reqbody
-    
-    const question_length=process.env.SECURITY_QUESTION_LENGTH
+
+  async resetPin(reqbody, pinChangeDto:PinResetDto) {
     
     const agent = await this.agentProfile.findOne({ where: { MSISDN: pinChangeDto.MSISDN } })
     const customer = await this.customerProfile.findOne({ where: { MSISDN: pinChangeDto.MSISDN } })
     const merchant = await this.merchantProfile.findOne({ where: { MSISDN: pinChangeDto.MSISDN } })
     
     if (agent !== null) {
-      const findQuestion = await this.securityQuestionAnswerRepo.findOne({ where: { Wallet_MSISDN: msisdn }} )
-      
-      if (findQuestion.Answer === question_answer) {
+            
         const generatedPin = await this.generateSixDigitRandomNumber()
 
         const newpin = this.passwordService.encryptPassword(
           generatedPin.toString(),
-          msisdn,
+          pinChangeDto.MSISDN,
         );
 
         console.log('newPin', newpin);
 
-        const updatePin = await this.agentProfile.update({ PIN: newpin }, { where: { MSISDN: msisdn } })
+      const updatePin = await this.agentProfile.update({ PIN: newpin }, { where: { MSISDN: pinChangeDto.MSISDN } })
+      
+      const notificationData={
+        KEYWORD: pinChangeDto.KEYWORD,
+        TemplateID: 'PRST',
+        LANG: pinChangeDto.LANG,
+        SourceMsisdn: pinChangeDto.MSISDN,
+        Amount: '',
+        DestinationMsisdn: pinChangeDto.MSISDN,
+        OTP:'',
+        RewardPoints: '',
+        REFID: '',
+        Pin: generatedPin.toString(),
+        TransectionId:''
+      }
+      this.emitKafkaPushNotif(notificationData)
         
         return {
+          
+            Msisdn: pinChangeDto.MSISDN,
             ResponseCode: 100,
-            ResponseDescription:
-             'Pin reset for agent '
-              ,
-            TransactionID: 0,
+            ResponseDescription: "PIN Successfully Reset",
+            ResponseDescriptionLocal: null,
+            TransactionId: null,
+            data: null
+          
           }
         
-        // const notificationtempbody = {
-        //   KEYWORD: '',
-        //   SourceMsisdn: msisdn,
-        //   PIN: generatedPin.toString(),
-        //   templateID: 'PRST',
-        //   LANG: 'ENG',
-        // };
-        // return {
-        //   ResponseCode: 100,
-        //   ResponseDescription:
-        //     await this.notificationService.getPINChangeNotification(
-        //       notificationtempbody,
-        //     ),
-        //   TransactionID: 0,
-        // };
-
-        
-      } else {
-         throw new BadRequestException('Answer Does to match')
-      }
+     
     }
 
     if (customer !== null) {
-      const findQuestion = await this.securityQuestionAnswerRepo.findOne({ where: { Wallet_MSISDN: msisdn } })
-      
-      if (findQuestion.Answer === question_answer) {
-        const generatedPin = await this.generateSixDigitRandomNumber()
+      const generatedPin = await this.generateSixDigitRandomNumber()
 
         const newpin = this.passwordService.encryptPassword(
           generatedPin.toString(),
-          msisdn,
+          pinChangeDto.MSISDN,
         );
 
         console.log('newPin', newpin);
 
-        const updatePin = await this.customerProfile.update({ PIN: newpin }, { where: { MSISDN: msisdn } })
+      const updatePin = await this.customerProfile.update({ PIN: newpin }, { where: { MSISDN: pinChangeDto.MSISDN } })
+      
+      const notificationData={
+        KEYWORD: pinChangeDto.KEYWORD,
+        TemplateID: 'PRST',
+        LANG: pinChangeDto.LANG,
+        SourceMsisdn: pinChangeDto.MSISDN,
+        Amount: '',
+        DestinationMsisdn: pinChangeDto.MSISDN,
+        OTP:'',
+        RewardPoints: '',
+        REFID: '',
+        Pin: generatedPin.toString(),
+        TransectionId:''
+      }
+      this.emitKafkaPushNotif(notificationData)
         
         return {
+          
+          Msisdn: pinChangeDto.MSISDN,
           ResponseCode: 100,
-          ResponseDescription:
-           'Pin reset for agent '
-            ,
-          TransactionID: 0,
+          ResponseDescription: "PIN Successfully Reset",
+          ResponseDescriptionLocal: null,
+          TransactionId: null,
+          data: null
+        
         }
-        
-        // const notificationtempbody = {
-        //   KEYWORD: '',
-        //   SourceMsisdn: msisdn,
-        //   PIN: generatedPin.toString(),
-        //   templateID: 'PRST',
-        //   LANG: 'ENG',
-        // };
-        // return {
-        //   ResponseCode: 100,
-        //   ResponseDescription:
-        //     await this.notificationService.getPINChangeNotification(
-        //       notificationtempbody,
-        //     ),
-        //   TransactionID: 0,
-        // };
-
-        
-      } else {
-         throw new BadRequestException('Answer Does to match')
-      }
+      
     }
 
     if (merchant !== null) {
-      const findQuestion = await this.securityQuestionAnswerRepo.findOne({ where: { Wallet_MSISDN: msisdn } })
-      
-      if (findQuestion.Answer === question_answer) {
-        const generatedPin = await this.generateSixDigitRandomNumber()
+      const generatedPin = await this.generateSixDigitRandomNumber()
 
         const newpin = this.passwordService.encryptPassword(
           generatedPin.toString(),
-          msisdn,
+          pinChangeDto.MSISDN,
         );
 
         console.log('newPin', newpin);
 
-        const updatePin = await this.merchantProfile.update({ PIN: newpin }, { where: { MSISDN: msisdn } })
+      const updatePin = await this.merchantProfile.update({ PIN: newpin }, { where: { MSISDN: pinChangeDto.MSISDN } })
+      
+      const notificationData={
+        KEYWORD: pinChangeDto.KEYWORD,
+        TemplateID: 'PRST',
+        LANG: pinChangeDto.LANG,
+        SourceMsisdn: pinChangeDto.MSISDN,
+        Amount: '',
+        DestinationMsisdn: pinChangeDto.MSISDN,
+        OTP:'',
+        RewardPoints: '',
+        REFID: '',
+        Pin: generatedPin.toString(),
+        TransectionId:''
+      }
+      this.emitKafkaPushNotif(notificationData)
         
         return {
+          
+          Msisdn: pinChangeDto.MSISDN,
           ResponseCode: 100,
-          ResponseDescription:
-           'Pin reset for merchant '
-            ,
-          TransactionID: 0,
+          ResponseDescription: "PIN Successfully Reset",
+          ResponseDescriptionLocal: null,
+          TransactionId: null,
+          data: null
+        
         }
-        
-        // const notificationtempbody = {
-        //   KEYWORD: '',
-        //   SourceMsisdn: msisdn,
-        //   PIN: generatedPin.toString(),
-        //   templateID: 'PRST',
-        //   LANG: 'ENG',
-        // };
-        // return {
-        //   ResponseCode: 100,
-        //   ResponseDescription:
-        //     await this.notificationService.getPINChangeNotification(
-        //       notificationtempbody,
-        //     ),
-        //   TransactionID: 0,
-        // };
+      
+    }
 
-        
-      } else {
-         throw new BadRequestException('Answer Does to match')
-      }
+    if (merchant == null && agent == null && customer == null) {
+      throw new BadRequestException('MSISDN DOES NOT MATCH')
     }
   }
 

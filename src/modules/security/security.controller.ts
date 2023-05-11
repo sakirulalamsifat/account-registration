@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Param, UseGuards,Request } from '@nestjs/common';
 import { SecurityService } from './security.service';
-import { PinChangeDto } from '../agent/dto/create-agent.dto';
+import { PinResetDto } from './dto/pin-reset.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthmodeAuthGuard } from '../auth/authmode-auth.guard';
 import { BasicAuthGuard } from '../auth/basicauth-auth.guard';
@@ -35,9 +35,9 @@ export class AgentController {
   }
 
 
-
+  @UseGuards(AuthmodeAuthGuard)
   @Post('/resetPin')
-  resetPin(@Body() reqbody: any, @Body() pinchangeDto:PinChangeDto) {
+  resetPin(@Body() reqbody: any, @Body() pinchangeDto:PinResetDto) {
     return this.securityService.resetPin(reqbody, pinchangeDto);
   }
 }
