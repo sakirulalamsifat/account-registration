@@ -22,6 +22,10 @@ import {
 } from '../../config/constants';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
+import axios from 'axios'
+import { winstonLog } from '../../config/winstonLog'
+
+
 @Injectable()
 export class AgentService {
   constructor(
@@ -39,14 +43,59 @@ export class AgentService {
     private readonly logger: Logger,
   ) {}
 
+
+  async getCustomerPoint(MSISDN) {
+
+    const url = process.env.GET_POINT_URL
+    const reqBody = { MSISDN }
+    winstonLog.log('info',' %s api Request :  %o', url, reqBody, { label: 'Point-pull' })
+
+    return await axios({
+        url ,
+        data: reqBody,
+        method : 'POST',
+        headers : {'Content-type': 'application/json' } 
+
+    }).then(resp => {
+
+        winstonLog.log('info',' %s api Response:  %o', url, resp.data, { label: 'Point-pull' })
+        const { MembershipId, CurrentYearRewardPoint} = resp.data['payload']
+        return { Current_Year_Reward_Point: CurrentYearRewardPoint, MembershipId}
+
+    }).catch(e => {
+
+        winstonLog.log('error', `${url} api Response %o`,e['response'] )
+
+        return { Current_Year_Reward_Point: 0, MembershipId: '0'}
+    })
+  }
+
+
   // Generate Transaction ID
 
   async balancecheck(Wallet_MSISDN: number) {
-    return this.walletRepository.findOne({
-      where: { Wallet_MSISDN },
-      attributes: ['Wallet_MSISDN', 'Amount', 'Current_Year_Reward_Point'],
-    });
+
+    const [data,pointinfo] = await Promise.all([
+      this.walletRepository.findOne({
+        where: { Wallet_MSISDN },
+        attributes: ['Wallet_MSISDN', 'Amount', 'Current_Year_Reward_Point'],
+      }),
+      this.getCustomerPoint(Wallet_MSISDN)
+    ])
+
+    // const data = await this.walletRepository.findOne({
+    //   where: { Wallet_MSISDN },
+    //   attributes: ['Wallet_MSISDN', 'Amount', 'Current_Year_Reward_Point'],
+    // });
+
+    if(data) {
+      const { Wallet_MSISDN, Amount} = data['dataValues']
+      return { Wallet_MSISDN, Amount, ...pointinfo }
+    }
+
+    return { Wallet_MSISDN, Amount: 0, Current_Year_Reward_Point: 0, MembershipId: '0' }
   }
+
   async PINVerify(PIN: string, MSISDN: string) {
     const walletinfo = JSON.parse(
       JSON.stringify(
@@ -80,16 +129,25 @@ export class AgentService {
     const match = await this.PINVerify(balanceDto.PIN, balanceDto.MSISDN);
 
     if (match.Passwordmatch === true && match.AccountStatus === 0) {
-      const balanceussd = await this.walletRepository.findOne({
-        where: { Wallet_MSISDN: balanceDto.MSISDN },
-        attributes: ['Wallet_MSISDN', 'Amount', 'Current_Year_Reward_Point'],
-      });
+
+      const [balanceussd,pointinfo] = await Promise.all([
+        this.walletRepository.findOne({
+          where: { Wallet_MSISDN: balanceDto.MSISDN },
+          attributes: ['Wallet_MSISDN', 'Amount', 'Current_Year_Reward_Point'],
+        }),
+        this.getCustomerPoint(balanceDto.MSISDN)
+      ])
+
+      // const balanceussd = await this.walletRepository.findOne({
+      //   where: { Wallet_MSISDN: balanceDto.MSISDN },
+      //   attributes: ['Wallet_MSISDN', 'Amount', 'Current_Year_Reward_Point'],
+      // });
       this.logger.log(balanceussd.Amount, 'USER BALANCE');
       const notificationtempbody = {
         KEYWORD: balanceDto.KEYWORD,
         SourceMsisdn: balanceDto.MSISDN,
         Amount: balanceussd.Amount,
-        RewardPoints: balanceussd.Current_Year_Reward_Point,
+        RewardPoints: pointinfo.Current_Year_Reward_Point,
         templateID: 'BALN_CUSTOMER',
         LANG: 'ENG',
       };
