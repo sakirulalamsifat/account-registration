@@ -7,6 +7,7 @@ export class DormantModel extends Model {
     type: DataType.BIGINT,
     allowNull: false,
     primaryKey: true,
+    autoIncrement:true
   })
   Row_Id: bigint;
   @Column({
@@ -51,7 +52,7 @@ export class DormantModel extends Model {
   @Column({
     type: DataType.STRING(20)
   })
-  Approved_by: string;
+  Approved_By: string;
 
   @Column({
 

@@ -563,7 +563,7 @@ export class SecurityService {
   async updateDormantConfig(reqbody) {
 
 
-    const {id,Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
+    const {Row_Id,Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
 
     const createBody = {
       Wallet_Type,
@@ -571,7 +571,8 @@ export class SecurityService {
       Created_Date: Sequelize.fn('getdate'),
       Dormant_Inactive_Days,
       Operation: 'UPDATE',
-      Main_Row_Id:id
+      Main_Row_Id: Row_Id,
+      Modified_Date:Sequelize.fn('getdate')
       
     }
 
@@ -583,15 +584,15 @@ export class SecurityService {
   async deleteDormantConfig(reqbody) {
 
 
-    const {id,Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
+    const {Row_Id,Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
 
     const createBody = {
       Wallet_Type,
       Created_By:created_by,
       Created_Date: Sequelize.fn('getdate'),
       Dormant_Inactive_Days,
-      Operation: 'Delete',
-      Main_Row_Id:id
+      Operation: 'DELETE',
+      Main_Row_Id: Row_Id
       
     }
 
@@ -649,20 +650,23 @@ export class SecurityService {
           const createData = {
               Wallet_Type,
               Dormant_Inactive_Days,
-              Created_By : old_created_by,
+              Created_By: old_created_by,
+              Approved_By:Created_By,
               Operation : `${Operation}-${old_action}`
           }
           if(action_id == 1) {
 
               this.dormantHistoryRepo.create(createData)
   
-              const createdinfo = await this.dormantRepo.create(createData)
+            const createdinfo = await this.dormantRepo.create(createData)
+            
+            await this.dormantTempRepo.destroy({ where : { Row_Id }})
   
           }
           else {
 
               this.dormantHistoryRepo.create(createData)
-             this.dormantTempRepo.destroy({ where : { username : Row_Id }})
+             this.dormantTempRepo.destroy({ where : { Row_Id }})
           }
   
       }
@@ -671,7 +675,8 @@ export class SecurityService {
           const createData = {
             Wallet_Type,
             Dormant_Inactive_Days,
-            Created_By : old_created_by,
+            Created_By: old_created_by,
+            Approved_By:Created_By,
             Operation : `${Operation}-${old_action}`
                
           }
@@ -698,7 +703,8 @@ export class SecurityService {
         const createData = {
           Wallet_Type,
           Dormant_Inactive_Days,
-          Created_By : old_created_by,
+          Created_By: old_created_by,
+          Approved_By:Created_By,
           Operation : `${Operation}-${old_action}`
              
         }
@@ -706,11 +712,11 @@ export class SecurityService {
 
               this.dormantHistoryRepo.create(createData)
   
-              const createdinfo = await this.dormantRepo.findOne({ where : { Row_Id }})
+              const createdinfo = await this.dormantRepo.findOne({ where : { Row_Id:Main_Row_Id }})
 
               if(createdinfo) {
 
-                  await this.dormantRepo.destroy({ where : { Row_Id : createdinfo['dataValues']['Row_Id'] }})
+                  await this.dormantRepo.destroy({ where : { Row_Id : Main_Row_Id}})
                  
               }
 

@@ -7,6 +7,7 @@ export class DormantHistoryModel extends Model {
     type: DataType.BIGINT,
     allowNull: false,
     primaryKey: true,
+    autoIncrement:true
   })
   Row_Id: bigint;
   @Column({
@@ -58,25 +59,22 @@ export class DormantHistoryModel extends Model {
   @Column({
 
     type: DataType.DATEONLY,
-    defaultValue: Sequelize.fn('getdate'),
   })
   Modified_Date: Date;
 
   @Column({
     type: DataType.STRING(20)
   })
-  Approved_by: string;
+  Approved_By: string;
 
   @Column({
 
     type: DataType.DATEONLY,
-    defaultValue: Sequelize.fn('getdate'),
   })
   Approved_Date: Date;
 
   @Column({
     type: DataType.BIGINT,
-    allowNull: false,
   })
   Main_Row_Id: bigint;
 }
