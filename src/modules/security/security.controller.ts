@@ -40,4 +40,34 @@ export class AgentController {
   resetPin(@Body() reqbody: any, @Body() pinchangeDto:PinResetDto) {
     return this.securityService.resetPin(reqbody, pinchangeDto);
   }
+
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/createDormant')
+  creatDormant(@Body() reqbody: any) {
+    return this.securityService.createDormantConfig(reqbody);
+  }
+
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/updateDormant')
+  updateDormant(@Body() reqbody: any) {
+    return this.securityService.updateDormantConfig(reqbody, );
+  }
+
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/deleteDormant')
+  deleteDormant(@Body() reqbody: any) {
+    return this.securityService.deleteDormantConfig(reqbody);
+  }
+
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/DormantList')
+  listDormant(@Body() reqbody: any) {
+    return this.securityService.DormantConfigList(reqbody);
+  }
+
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/DormantAction')
+  dormantAction(@Body() reqbody: any) {
+    return this.securityService.pendingDormantAction(reqbody);
+  }
 }

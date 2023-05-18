@@ -7,6 +7,9 @@ import {
   AgentPorfileModel,
   MerchantProfileModel,
   NotificationModel,
+  DormantHistoryModel,
+  DormantTempModel,
+  DormantModel
   
 } from '../../models';
 import {
@@ -17,7 +20,10 @@ import {
   SW_TBL_PROFILE_AGENTS,
   SW_TBL_PROFILE_CUST,
   SW_TBL_PROFILE_MERCHANT,
-  NOTIFICATION_REPOSITORY
+  NOTIFICATION_REPOSITORY,
+  SW_TBL_DORMANT_CONFIG,
+  SW_TBL_DORMANT_CONFIG_HISTORY,
+  SW_TBL_DORMANT_CONFIG_TEMP
 } from '../../config/constants';
 
 export const securityProviders = [
@@ -53,5 +59,17 @@ export const securityProviders = [
   {
     provide: NOTIFICATION_REPOSITORY,
     useValue: NotificationModel,
+  },
+  {
+    provide: SW_TBL_DORMANT_CONFIG,
+    useValue: DormantModel,
+  },
+  {
+    provide: SW_TBL_DORMANT_CONFIG_HISTORY,
+    useValue: DormantHistoryModel,
+  },
+  {
+    provide: SW_TBL_DORMANT_CONFIG_TEMP,
+    useValue: DormantTempModel,
   }
 ];

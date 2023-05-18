@@ -1,0 +1,61 @@
+import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Sequelize } from 'sequelize-typescript';
+
+@Table({ tableName: 'SW_TBL_DORMANT_CONFIG' })
+export class DormantModel extends Model {
+  @Column({
+    type: DataType.BIGINT,
+    allowNull: false,
+    primaryKey: true,
+  })
+  Row_Id: bigint;
+  @Column({
+    type: DataType.INTEGER
+  })
+  Wallet_Type: number;
+
+  @Column({
+    type: DataType.INTEGER
+  })
+  Dormant_Inactive_Days: number;
+
+  @Column({
+    type: DataType.INTEGER
+  })
+  Status: number;
+
+
+  @Column({
+    type: DataType.STRING(20)
+  })
+  Created_By: string;
+
+  @Column({
+
+    type: DataType.DATEONLY,
+    defaultValue: Sequelize.fn('getdate'),
+  })
+  Created_Date: Date;
+
+  @Column({
+    type: DataType.STRING(20)
+  })
+  Modified_By: string;
+
+  @Column({
+
+    type: DataType.DATEONLY
+  })
+  Modified_Date: Date;
+
+  @Column({
+    type: DataType.STRING(20)
+  })
+  Approved_by: string;
+
+  @Column({
+
+    type: DataType.DATEONLY
+  })
+  Approved_Date: Date;
+}

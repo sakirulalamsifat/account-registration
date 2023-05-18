@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import {
   SecurityQuestionHistoryModel,
   SecurityQuestionModel,
@@ -6,7 +6,10 @@ import {
   SecurityQuestionAnswerModel,
   AgentPorfileModel,
   MerchantProfileModel,
-  CustomerProfileModel
+  CustomerProfileModel,
+  DormantHistoryModel,
+  DormantModel,
+  DormantTempModel
 } from '../../models';
 import { PinResetDto } from './dto/pin-reset.dto';
 import { ClientKafka } from '@nestjs/microservices';
@@ -17,7 +20,10 @@ import {
   SW_TBL_SECURITY_QUESTION_ANSWER_SET,
   SW_TBL_PROFILE_AGENTS,
   SW_TBL_PROFILE_CUST,
-  SW_TBL_PROFILE_MERCHANT
+  SW_TBL_PROFILE_MERCHANT,
+  SW_TBL_DORMANT_CONFIG,
+  SW_TBL_DORMANT_CONFIG_HISTORY,
+  SW_TBL_DORMANT_CONFIG_TEMP
 } from '../../config/constants';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
@@ -44,6 +50,12 @@ export class SecurityService {
     private readonly customerProfile: typeof CustomerProfileModel,
     @Inject(  SW_TBL_PROFILE_MERCHANT)
     private readonly merchantProfile: typeof MerchantProfileModel,
+    @Inject(  SW_TBL_DORMANT_CONFIG)
+    private readonly dormantRepo: typeof DormantModel,
+    @Inject(  SW_TBL_DORMANT_CONFIG_HISTORY)
+    private readonly dormantHistoryRepo: typeof DormantHistoryModel,
+    @Inject(  SW_TBL_DORMANT_CONFIG_TEMP)
+    private readonly dormantTempRepo: typeof DormantTempModel,
     private readonly passwordService: PasswordService,
     private readonly notificationService:NotificationService,
     private readonly logger: Logger,
@@ -528,5 +540,195 @@ export class SecurityService {
       throw new BadRequestException('MSISDN DOES NOT MATCH')
     }
   }
+
+  async createDormantConfig(reqbody) {
+
+
+    const {Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
+
+    const createBody = {
+      Wallet_Type,
+      Created_By:created_by,
+      Created_Date: Sequelize.fn('getdate'),
+      Dormant_Inactive_Days,
+      Operation:'INSERT'
+      
+    }
+
+    await this.dormantTempRepo.create( createBody )
+
+    return await this.dormantHistoryRepo.create(createBody)
+  }
+
+  async updateDormantConfig(reqbody) {
+
+
+    const {id,Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
+
+    const createBody = {
+      Wallet_Type,
+      Created_By:created_by,
+      Created_Date: Sequelize.fn('getdate'),
+      Dormant_Inactive_Days,
+      Operation: 'UPDATE',
+      Main_Row_Id:id
+      
+    }
+
+    await this.dormantTempRepo.create( createBody )
+
+    return await this.dormantHistoryRepo.create(createBody)
+  }
+
+  async deleteDormantConfig(reqbody) {
+
+
+    const {id,Wallet_Type,Dormant_Inactive_Days,created_by} = reqbody
+
+    const createBody = {
+      Wallet_Type,
+      Created_By:created_by,
+      Created_Date: Sequelize.fn('getdate'),
+      Dormant_Inactive_Days,
+      Operation: 'Delete',
+      Main_Row_Id:id
+      
+    }
+
+    await this.dormantTempRepo.create( createBody )
+
+    return await this.dormantHistoryRepo.create(createBody)
+  }
+
+  async DormantConfigList(reqbody) {
+
+
+    const {created_by} = reqbody
+
+    const List= await this.dormantRepo.findAll()
+
+    const myPendingList=await this.dormantTempRepo.findAll( { where : { Created_By:created_by}} )
+
+    const pendingList = await this.dormantTempRepo.findAll({ where: { Created_By: { [Op.ne]: created_by } } })
+    
+    return {List, myPendingList, pendingList}
+  }
+
+  async pendingDormantAction(reqbody){
+          
+  let Operation = 'REJECTED'
+    let dormaninfo
+    let createBody = {}
+   
+
+    //action_id = 1=> approve, action_id = 2=> reject, action_id = 3 => delete
+    const {action_id = 2, Row_Id, reject_msg = null,Created_By} = reqbody
+
+    Operation = (action_id == 1) ? 'APPROVED' : (action_id == 2) ? 'REJECTED' : 'DELETE'
+
+
+        dormaninfo = await this.dormantTempRepo.findOne({where:{Row_Id}})
+
+        if(!dormaninfo) {
+
+            throw new NotFoundException()
+        }
+
+        if(dormaninfo['dataValues']['Created_By'] == Created_By && (action_id == 1 || action_id == 2)) {
+
+            throw new BadRequestException('You cannot Approve/Reject it')
+        }
+
+        const { Wallet_Type,Dormant_Inactive_Days, Main_Row_Id,Operation:old_action,Created_By:old_created_by } = dormaninfo['dataValues']
+     
+
+
+
+        if(old_action == 'INSERT') {
+
+          const createData = {
+              Wallet_Type,
+              Dormant_Inactive_Days,
+              Created_By : old_created_by,
+              Operation : `${Operation}-${old_action}`
+          }
+          if(action_id == 1) {
+
+              this.dormantHistoryRepo.create(createData)
+  
+              const createdinfo = await this.dormantRepo.create(createData)
+  
+          }
+          else {
+
+              this.dormantHistoryRepo.create(createData)
+             this.dormantTempRepo.destroy({ where : { username : Row_Id }})
+          }
+  
+      }
+      else if(old_action == 'UPDATE') {
+
+          const createData = {
+            Wallet_Type,
+            Dormant_Inactive_Days,
+            Created_By : old_created_by,
+            Operation : `${Operation}-${old_action}`
+               
+          }
+          if(action_id == 1) {
+
+              this.dormantHistoryRepo.create(createData)
+  
+              const update = await this.dormantRepo.update(createData, { where : { Row_Id : Main_Row_Id },returning: true  })
+
+      
+              //distroy...
+              await this.dormantTempRepo.destroy({ where : { Row_Id}})
+
+          }
+          else {
+
+              this.dormantHistoryRepo.create(createData)
+             await this.dormantTempRepo.destroy({ where : { Row_Id }})
+          }
+  
+      }
+      else if(old_action == 'DELETE') {
+
+        const createData = {
+          Wallet_Type,
+          Dormant_Inactive_Days,
+          Created_By : old_created_by,
+          Operation : `${Operation}-${old_action}`
+             
+        }
+          if(action_id == 1) {
+
+              this.dormantHistoryRepo.create(createData)
+  
+              const createdinfo = await this.dormantRepo.findOne({ where : { Row_Id }})
+
+              if(createdinfo) {
+
+                  await this.dormantRepo.destroy({ where : { Row_Id : createdinfo['dataValues']['Row_Id'] }})
+                 
+              }
+
+              //distroy...
+              this.dormantTempRepo.destroy({ where : { Row_Id  }})
+              
+
+          }
+          else {
+
+              this.dormantHistoryRepo.create(createData)
+             this.dormantTempRepo.destroy({ where : { Row_Id }})
+          }
+  
+      }
+
+      return true
+
+}
 
 }
