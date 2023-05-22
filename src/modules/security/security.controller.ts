@@ -70,4 +70,10 @@ export class AgentController {
   dormantAction(@Body() reqbody: any) {
     return this.securityService.pendingDormantAction(reqbody);
   }
+
+  @UseGuards(AuthmodeAuthGuard)
+  @Post('/userDetails')
+  userDetails(@Body() reqbody: any) {
+    return this.securityService.userDetails(reqbody);
+  }
 }
