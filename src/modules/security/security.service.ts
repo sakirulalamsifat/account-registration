@@ -751,8 +751,15 @@ export class SecurityService {
         @Msisdn = ${Msisdn}
       `
         )))
+    const arrayResult = result[0][0]
     
-        return result[0][0]
+    const response = {
+      Name: arrayResult.Name,
+      Wallet_Details: arrayResult.Wallet_Details,
+      MSISDN:arrayResult.MSISDN
+    }
+    
+    return response
 
   }
 
