@@ -449,7 +449,9 @@ export class SecurityService {
         RewardPoints: '',
         REFID: '',
         Pin: generatedPin.toString(),
-        TransectionId: ''
+        TransectionId: '',
+        Issuccess : true,
+        Is_Financial: "N"
       }
       this.emitKafkaPushNotif(notificationData)
         
