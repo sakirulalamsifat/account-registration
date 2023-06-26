@@ -374,7 +374,16 @@ export class SecurityService {
         data: null
       }
     } else {
-      throw new BadRequestException('Answer Does to match')
+      return {
+        PinResetAttempt: 0,
+        SecurityQuestionList: [],
+        Msisdn: Msisdn,
+        ResponseCode: 400,
+        ResponseDescription: "Answers do not match",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+      }
     }
        
         

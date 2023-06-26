@@ -289,6 +289,7 @@ export class AgentService {
       pinChangeDto.OLDPIN,
       pinChangeDto.MSISDN,
     );
+    
     if (match.Passwordmatch === true && match.AccountStatus === 0) {
       const newpin = this.passwordService.encryptPassword(
         pinChangeDto.NEWPIN,
@@ -301,6 +302,7 @@ export class AgentService {
         templateID: 'PRST',
         LANG: pinChangeDto.LANG,
       };
+      console.log(notificationtempbody)
       return {
         ResponseCode: 100,
         ResponseDescription:
@@ -311,6 +313,8 @@ export class AgentService {
       };
     } else {
       let notificationtempbody;
+
+      
       if (match.AccountStatus == 6) {
         notificationtempbody = {
           KEYWORD: pinChangeDto.KEYWORD,
@@ -318,6 +322,7 @@ export class AgentService {
           templateID: 'FAIL_ACCOUNT_LOCKED_SOURCE',
           LANG: pinChangeDto.LANG,
         };
+        console.log(notificationtempbody)
       } else {
         notificationtempbody = {
           KEYWORD: pinChangeDto.KEYWORD,
@@ -325,6 +330,7 @@ export class AgentService {
           templateID: 'FAIL_PININVALID',
           LANG: pinChangeDto.LANG,
         };
+        console.log(notificationtempbody)
       }
       return {
         Responsecode: 101,
