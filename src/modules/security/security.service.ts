@@ -492,7 +492,9 @@ export class SecurityService {
         RewardPoints: '',
         REFID: '',
         Pin: generatedPin.toString(),
-        TransectionId: ''
+        TransectionId: '',
+        Issuccess : true,
+        Is_Financial: "N"
       }
       this.emitKafkaPushNotif(notificationData)
         
@@ -532,7 +534,9 @@ export class SecurityService {
         RewardPoints: '',
         REFID: '',
         Pin: generatedPin.toString(),
-        TransectionId: ''
+        TransectionId: '',
+        Issuccess : true,
+        Is_Financial: "N"
       }
       this.emitKafkaPushNotif(notificationData)
         
@@ -550,7 +554,16 @@ export class SecurityService {
     }
 
     if (merchant == null && agent == null && customer == null) {
-      throw new BadRequestException('MSISDN DOES NOT MATCH')
+      return {
+          
+        Msisdn: pinChangeDto.MSISDN,
+        ResponseCode: 400,
+        ResponseDescription: "MSISDN Does Not Match",
+        ResponseDescriptionLocal: null,
+        TransactionId: null,
+        data: null
+        
+      }
     }
   }
 
