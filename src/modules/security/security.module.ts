@@ -1,5 +1,6 @@
 import { Module, Logger } from '@nestjs/common';
 import { SecurityService } from './security.service';
+import { PasswordVarificationService } from './passwordVarifivation.service';
 import { DatabaseModule } from '../../config/database/database.module';
 import { AgentController } from './security.controller';;
 import { ClientsModule, Transport } from '@nestjs/microservices';
@@ -10,6 +11,7 @@ import { AgentModule } from '../agent/agent.module';
   controllers: [AgentController],
   providers: [
     SecurityService,
+    PasswordVarificationService,
     ...securityProviders,
     Logger,
   ],

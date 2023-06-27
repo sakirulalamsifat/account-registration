@@ -26,11 +26,13 @@ import {
   SW_TBL_DORMANT_CONFIG_TEMP,
   DATABASE_CONNECTION
 } from '../../config/constants';
+import { PasswordVarificationService } from './passwordVarifivation.service';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
 import { log } from 'winston';
 import { PasswordService } from '../agent/password.service';
 import { NotificationService } from '../agent/notification.service';
+import axios from 'axios';
 
 @Injectable()
 export class SecurityService {
@@ -58,6 +60,7 @@ export class SecurityService {
     @Inject(SW_TBL_DORMANT_CONFIG_TEMP)
     private readonly dormantTempRepo: typeof DormantTempModel,
     private readonly passwordService: PasswordService,
+    private readonly passwordVarificationService: PasswordVarificationService,
     private readonly notificationService: NotificationService,
     private readonly logger: Logger,
     @Inject(DATABASE_CONNECTION) private DB: Sequelize
@@ -246,55 +249,88 @@ export class SecurityService {
     //   Created_Date: Sequelize.fn('getdate')
     // }, { logging: console.log })
 
-    if (SecurityQuestionList.length > question_length) {
-      const newQuestion = SecurityQuestionList.slice(0, question_length)
 
-      for (let question of newQuestion) {
-        const data = await this.securityQuestionAnswerRepo.create({
-          Wallet_MSISDN: Msisdn,
-          Question_ID: question.QuestionId,
-          Answer: question.Answer,
-          Created_Date: Sequelize.fn('getdate')
-        })
-      }
+    const body = {
+      'Username': Msisdn,
+      'Pin':Pin
+    }
+    const header = {
+      'module':'JW9tc0ByZWRsdGQl'
+    }
 
-      //const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
-      
-      return {
-        Msisdn: Msisdn,
-        ResponseCode: 100,
-        ResponseDescription: "Successful",
-        ResponseDescriptionLocal: null,
-        TransactionId: null,
-        data: null
+    const passwordVarify = await axios.post(process.env.PIN_VALIDATE_API, body, {
+      headers:header
+    })
+    
+    console.log('pin', passwordVarify.data)
+    console.log('reqbody', reqbody)
+    
+    
+    
+    
+    
+
+    if (passwordVarify.data.Passwordmatch == true) {
+      if (SecurityQuestionList.length > question_length) {
+        const newQuestion = SecurityQuestionList.slice(0, question_length)
+  
+        for (let question of newQuestion) {
+          const data = await this.securityQuestionAnswerRepo.create({
+            Wallet_MSISDN: Msisdn,
+            Question_ID: question.QuestionId,
+            Answer: question.Answer,
+            Created_Date: Sequelize.fn('getdate')
+          })
+        }
+  
+        //const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
+        
+        return {
+          Msisdn: Msisdn,
+          ResponseCode: 100,
+          ResponseDescription: "Successful",
+          ResponseDescriptionLocal: null,
+          TransactionId: null,
+          data: null
+        }
+      } else {
+  
+        for (let question of SecurityQuestionList) {
+          const data = await this.securityQuestionAnswerRepo.create({
+            Wallet_MSISDN: Msisdn,
+            Question_ID: question.QuestionId,
+            Answer: question.Answer,
+            Created_Date: Sequelize.fn('getdate')
+          })
+        }
+  
+        //const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
+        
+        return {
+          Msisdn: Msisdn,
+          ResponseCode: 100,
+          ResponseDescription: "Successful",
+          ResponseDescriptionLocal: null,
+          TransactionId: null,
+          data: null
+        }
+  
+        // const data=await this.securityQuestionAnswerRepo.bulkCreate(SecurityQuestionList)
+  
+  
+        // return data
       }
     } else {
-
-      for (let question of SecurityQuestionList) {
-        const data = await this.securityQuestionAnswerRepo.create({
-          Wallet_MSISDN: Msisdn,
-          Question_ID: question.QuestionId,
-          Answer: question.Answer,
-          Created_Date: Sequelize.fn('getdate')
-        })
-      }
-
-      //const data = await this.securityQuestionAnswerRepo.bulkCreate(newQuestion)
-      
       return {
         Msisdn: Msisdn,
-        ResponseCode: 100,
-        ResponseDescription: "Successful",
+        ResponseCode: 200,
+        ResponseDescription: "Pin Does Not Match",
         ResponseDescriptionLocal: null,
         TransactionId: null,
         data: null
       }
-
-      // const data=await this.securityQuestionAnswerRepo.bulkCreate(SecurityQuestionList)
-
-
-      // return data
-    }
+}
+   
 
    
   }
@@ -566,6 +602,8 @@ export class SecurityService {
       }
     }
   }
+
+
 
   async createDormantConfig(reqbody) {
 
